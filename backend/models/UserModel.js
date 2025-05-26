@@ -1,45 +1,37 @@
-import { DataTypes } from "sequelize";
-import bcrypt from "bcrypt";
-import db from "../config/database.js";
+import { DataTypes } from 'sequelize';
+import bcrypt from 'bcrypt';
 
-const User = db.define('users', {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true
-  },
-  email: {
-    type: DataTypes.STRING(100),
-    allowNull: false,
-    unique: true,
-    validate: {
-      isEmail: true
+const UserModel = (sequelize) => {
+  const User = sequelize.define('User', {
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+      validate: {
+        isEmail: true
+      }
+    },
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    refresh_token: {
+      type: DataTypes.TEXT
     }
-  },
-  password: {
-    type: DataTypes.STRING(255),
-    allowNull: false
-  },
-  refresh_token: {
-    type: DataTypes.TEXT,
-    allowNull: true
-  }
-}, {
-  freezeTableName: true,
-  timestamps: true,
-  hooks: {
-    beforeCreate: async (user) => {
-      if (user.password) {
+  }, {
+    hooks: {
+      beforeCreate: async (user) => {
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(user.password, salt);
       }
     }
-  }
-});
+  });
 
-// Opsional: pakai ini di controller supaya lebih clean
-User.prototype.comparePassword = async function (password) {
-  return await bcrypt.compare(password, this.password);
+  User.prototype.comparePassword = async function(password) {
+    return await bcrypt.compare(password, this.password);
+  };
+
+  return User;
 };
 
-export default User;
+export default UserModel;

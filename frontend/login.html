@@ -5,20 +5,71 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - Notes App</title>
   <link rel="stylesheet" href="./css/style.css">
+  <style>
+    /* Tambahan style untuk modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 100;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+    
+    .modal-content {
+      background-color: #fefefe;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .close-modal {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    
+    .close-modal:hover {
+      color: #333;
+    }
+  </style>
 </head>
 <body>
   <div class="auth-container">
     <div class="auth-form">
       <h1>Login</h1>
-      <div id="loginError" class="error-message" style="display: none;"></div>
-      <form id="loginForm" onsubmit="event.preventDefault(); login();">
+      <div id="loginError" class="error-message"></div>
+      <form id="loginForm">
         <input type="email" id="loginEmail" placeholder="Email" required>
         <input type="password" id="loginPassword" placeholder="Password" required>
         <button type="submit">Login</button>
       </form>
       <p class="auth-footer">
-        Don't have an account? <a href="#" onclick="showRegister()">Register</a>
+        Don't have an account? <a href="#" id="registerLink">Register here</a>
       </p>
+    </div>
+  </div>
+
+  <!-- Register Modal -->
+  <div id="registerModal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h2>Create Account</h2>
+      <div id="registerError" class="error-message"></div>
+      <form id="registerForm">
+        <input type="text" id="registerName" placeholder="Full Name" required>
+        <input type="email" id="registerEmail" placeholder="Email" required>
+        <input type="password" id="registerPassword" placeholder="Password" required>
+        <input type="password" id="registerConfirm" placeholder="Confirm Password" required>
+        <button type="submit">Register</button>
+      </form>
     </div>
   </div>
 

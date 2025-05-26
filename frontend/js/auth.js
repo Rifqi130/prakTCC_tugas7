@@ -1,63 +1,108 @@
-// Config
-const API_URL = "http://localhost:3000/api"; // Pastikan sesuai dengan port backend
+// Configuration
+const API_URL = "http://localhost:3000/api";
 
 // DOM Elements
 const loginForm = document.getElementById('loginForm');
 const registerForm = document.getElementById('registerForm');
-const loginError = document.getElementById('loginError');
-const registerError = document.getElementById('registerError');
+const registerLink = document.getElementById('registerLink');
+const registerModal = document.getElementById('registerModal');
+const closeModal = document.querySelector('.close-modal');
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  // Event Listeners
+  loginForm.addEventListener('submit', handleLogin);
+  registerForm.addEventListener('submit', handleRegister);
+  registerLink.addEventListener('click', showRegister);
+  closeModal.addEventListener('click', hideRegister);
+  
+  // Close modal when clicking outside
+  window.addEventListener('click', (e) => {
+    if (e.target === registerModal) {
+      hideRegister();
+    }
+  });
+});
+
+// Show Register Modal
+function showRegister(e) {
+  e.preventDefault();
+  registerModal.style.display = 'block';
+  document.getElementById('registerError').textContent = '';
+}
+
+// Hide Register Modal
+function hideRegister() {
+  registerModal.style.display = 'none';
+}
 
 // Handle Login
-async function login() {
+async function handleLogin(e) {
+  e.preventDefault();
+  
   const email = document.getElementById('loginEmail').value;
   const password = document.getElementById('loginPassword').value;
-
-  // Clear previous errors
-  loginError.textContent = '';
   
-  // Validation
-  if (!email || !password) {
-    showError(loginError, 'Email and password are required');
-    return;
-  }
-
   try {
     const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email, password }),
-      credentials: 'include' // Untuk cookie/session jika digunakan
+      body: JSON.stringify({ email, password })
     });
 
-    const data = await response.json();
-
     if (!response.ok) {
-      throw new Error(data.message || 'Login failed');
+      throw new Error(await response.text());
     }
 
-    // Simpan token di localStorage
+    const data = await response.json();
     localStorage.setItem('accessToken', data.accessToken);
-    
-    // Redirect ke halaman utama
     window.location.href = 'index.html';
   } catch (error) {
-    console.error('Login error:', error);
-    showError(loginError, error.message || 'Network error: Please try again');
+    showError('loginError', error.message || 'Login failed');
   }
 }
 
-// Helper function untuk menampilkan error
-function showError(element, message) {
-  element.textContent = message;
-  element.style.display = 'block';
+// Handle Registration
+async function handleRegister(e) {
+  e.preventDefault();
   
-  // Auto-hide error setelah 5 detik
-  setTimeout(() => {
-    element.style.display = 'none';
-  }, 5000);
+  const name = document.getElementById('registerName').value;
+  const email = document.getElementById('registerEmail').value;
+  const password = document.getElementById('registerPassword').value;
+  const confirm = document.getElementById('registerConfirm').value;
+  
+  // Validation
+  if (password !== confirm) {
+    showError('registerError', "Passwords don't match");
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/auth/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name, email, password })
+    });
+
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
+
+    hideRegister();
+    showError('loginError', 'Registration successful! Please login', 'success');
+  } catch (error) {
+    showError('registerError', error.message || 'Registration failed');
+  }
 }
 
-// Expose functions to window
-window.login = login;
+// Helper function to show errors
+function showError(elementId, message, type = 'error') {
+  const element = document.getElementById(elementId);
+  element.textContent = message;
+  element.style.color = type === 'error' ? '#dc3545' : '#28a745';
+  element.style.display = 'block';
+}

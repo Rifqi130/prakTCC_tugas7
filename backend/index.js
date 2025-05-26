@@ -1,10 +1,13 @@
-import express from "express";
-import cors from "cors";
-import cookieParser from "cookie-parser";
-import dotenv from "dotenv";
-import router from "./routes/index.js";
+import express from 'express';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import dotenv from 'dotenv';
+import router from './routes/index.js';
+import db from './config/database.js';
+import { User, Note } from './models/index.js';
 
 dotenv.config();
+
 const app = express();
 
 // Middleware
@@ -25,4 +28,26 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+const startServer = async () => {
+  try {
+    // Test connection
+    await db.authenticate();
+    console.log('✅ Database connected');
+
+    // Sync models
+    await User.sync({ alter: true });
+    await Note.sync({ alter: true });
+    console.log('✅ Models synchronized');
+
+    // Start server
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
