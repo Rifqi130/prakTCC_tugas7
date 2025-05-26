@@ -24,4 +24,9 @@ const db = new Sequelize(
   }
 );
 
+// Tambahkan pengecekan koneksi
+db.authenticate()
+  .then(() => console.log('✅ Database connected successfully'))
+  .catch(err => console.error('❌ Database connection error:', err));
+
 export default db;

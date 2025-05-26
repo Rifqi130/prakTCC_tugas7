@@ -1,13 +1,13 @@
 ### Get all notes
-GET http://localhost:5001/notes
+GET http://localhost:5001/note
 ###
 
 ### Get a specific note by ID
-GET http://localhost:5001/notes/1
+GET http://localhost:5001/note/1
 ###
 
 ### Create a new note
-POST http://localhost:5001/notes
+POST http://localhost:5001/note
 Content-Type: application/json
 
 {
@@ -17,7 +17,7 @@ Content-Type: application/json
 }
 
 ### Update a note by ID
-PATCH http://localhost:5001/notes/1
+PATCH http://localhost:5001/note/1
 Content-Type: application/json
 
 {
@@ -27,4 +27,4 @@ Content-Type: application/json
 }
 
 ### Delete a note by ID
-DELETE http://localhost:5001/notes/1
+DELETE http://localhost:5001/note/1

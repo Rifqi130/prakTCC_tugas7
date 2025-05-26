@@ -11,9 +11,12 @@ dotenv.config();
 const app = express();
 
 // Middleware
+// Ganti bagian CORS dengan ini:
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-  credentials: true
+  origin: ['http://localhost:3000', 'http://127.0.0.1:5500'], // Tambahkan port Live Server
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(cookieParser());
 app.use(express.json());
@@ -22,9 +25,32 @@ app.use(express.json());
 app.use('/api', router);
 
 // Error handling
+// Tambahkan error handler ini sebelum startServer
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: "Internal Server Error" });
+  console.error('Error:', err.stack);
+  
+  // Handle Sequelize validation errors
+  if (err.name === 'SequelizeValidationError') {
+    const errors = err.errors.map(e => ({
+      field: e.path,
+      message: e.message
+    }));
+    return res.status(400).json({ errors });
+  }
+  
+  // Handle Sequelize unique constraint errors
+  if (err.name === 'SequelizeUniqueConstraintError') {
+    return res.status(400).json({ 
+      error: 'Data sudah ada',
+      field: err.errors[0].path,
+      message: err.errors[0].message
+    });
+  }
+  
+  res.status(500).json({ 
+    error: "Terjadi kesalahan pada server",
+    detail: process.env.NODE_ENV === 'development' ? err.message : null
+  });
 });
 
 const PORT = process.env.PORT || 5001;

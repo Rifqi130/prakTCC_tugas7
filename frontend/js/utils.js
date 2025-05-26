@@ -1,28 +1,39 @@
-const API_URL = "https://notes-backend162-639911956774.us-central1.run.app";
+const API_URL = "http://localhost:5001/api";
 
-// Helper function for authenticated requests
-async function makeAuthenticatedRequest(url, method, body = null) {
+async function makeAuthenticatedRequest(endpoint, method, body = null) {
+  const token = localStorage.getItem('accessToken');
+  
+  if (!token) {
+    window.location.href = 'login.html';
+    return null;
+  }
+
   const options = {
     method,
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-    }
+      'Authorization': `Bearer ${token}`
+    },
+    credentials: 'include'
   };
 
   if (body) {
     options.body = JSON.stringify(body);
   }
 
-  const response = await fetch(`${API_URL}${url}`, options);
+  try {
+    const response = await fetch(`${API_URL}${endpoint}`, options);
+    
+    if (response.status === 401) {
+      logout();
+      return null;
+    }
 
-  if (response.status === 401) {
-    // Token expired or invalid
-    logout();
-    return null;
+    return response;
+  } catch (error) {
+    console.error('Request failed:', error);
+    throw error;
   }
-
-  return response;
 }
 
 function logout() {
@@ -30,6 +41,22 @@ function logout() {
   window.location.href = 'login.html';
 }
 
+// Helper functions
+function escapeHtml(unsafe) {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function formatDate(dateString) {
+  return new Date(dateString).toLocaleString();
+}
+
 // Expose to window
 window.makeAuthenticatedRequest = makeAuthenticatedRequest;
 window.logout = logout;
+window.escapeHtml = escapeHtml;
+window.formatDate = formatDate;

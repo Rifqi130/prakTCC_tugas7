@@ -1,6 +1,7 @@
-const API_URL = "https://notes-backend162-639911956774.us-central1.run.app";
+// Global variables
 let currentNoteId = null;
 
+// Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
   // Check authentication
   if (!localStorage.getItem('accessToken')) {
@@ -15,8 +16,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('cancelBtn').addEventListener('click', cancelEdit);
 });
 
+// Load all notes from API
 async function loadNotes() {
   try {
+    showLoading(true);
+    
     const response = await makeAuthenticatedRequest('/notes', 'GET');
     
     if (!response) return; // Handled by makeAuthenticatedRequest
@@ -29,15 +33,18 @@ async function loadNotes() {
     renderNotes(notes);
   } catch (error) {
     console.error('Error loading notes:', error);
-    alert('Failed to load notes. Please try again.');
+    showError('Failed to load notes. Please try again.');
+  } finally {
+    showLoading(false);
   }
 }
 
+// Render notes to the DOM
 function renderNotes(notes) {
   const notesList = document.getElementById('notesList');
   notesList.innerHTML = '';
 
-  if (notes.length === 0) {
+  if (!notes || notes.length === 0) {
     notesList.innerHTML = '<p class="no-notes">No notes found. Create your first note!</p>';
     return;
   }
@@ -62,16 +69,19 @@ function renderNotes(notes) {
   });
 }
 
+// Save or update note
 async function saveNote() {
   const title = document.getElementById('noteTitle').value.trim();
   const content = document.getElementById('noteContent').value.trim();
 
   if (!title || !content) {
-    alert('Title and content are required');
+    showError('Title and content are required');
     return;
   }
 
   try {
+    showLoading(true);
+    
     let response;
     const noteData = { title, content };
 
@@ -94,17 +104,19 @@ async function saveNote() {
     loadNotes();
     
     // Show success message
-    const successMsg = currentNoteId ? 'Note updated successfully!' : 'Note created successfully!';
-    showTempMessage(successMsg, 'success');
+    showTempMessage(currentNoteId ? 'Note updated successfully!' : 'Note created successfully!', 'success');
     
     currentNoteId = null;
   } catch (error) {
     console.error('Error saving note:', error);
-    alert('Failed to save note. Please try again.');
+    showError('Failed to save note. Please try again.');
+  } finally {
+    showLoading(false);
   }
 }
 
-function editNote(id, title, content) {
+// Edit note - fill form with existing data
+window.editNote = function(id, title, content) {
   currentNoteId = id;
   document.getElementById('noteTitle').value = title;
   document.getElementById('noteContent').value = content;
@@ -115,12 +127,14 @@ function editNote(id, title, content) {
   
   // Scroll to form
   document.querySelector('.note-form').scrollIntoView({ behavior: 'smooth' });
-}
+};
 
+// Cancel edit mode
 function cancelEdit() {
   resetForm();
 }
 
+// Reset form to initial state
 function resetForm() {
   currentNoteId = null;
   document.getElementById('noteTitle').value = '';
@@ -129,12 +143,15 @@ function resetForm() {
   document.getElementById('cancelBtn').classList.add('hidden');
 }
 
-async function deleteNote(id) {
+// Delete note
+window.deleteNote = async function(id) {
   if (!confirm('Are you sure you want to delete this note?')) {
     return;
   }
 
   try {
+    showLoading(true);
+    
     const response = await makeAuthenticatedRequest(`/notes/${id}`, 'DELETE');
     
     if (!response) return; // Handled by makeAuthenticatedRequest
@@ -152,8 +169,67 @@ async function deleteNote(id) {
     }
   } catch (error) {
     console.error('Error deleting note:', error);
-    alert('Failed to delete note. Please try again.');
+    showError('Failed to delete note. Please try again.');
+  } finally {
+    showLoading(false);
   }
+};
+
+// Helper function to show loading state
+function showLoading(isLoading) {
+  const loader = document.getElementById('loadingIndicator') || createLoader();
+  loader.style.display = isLoading ? 'block' : 'none';
+  
+  // Disable buttons during loading
+  const buttons = document.querySelectorAll('button');
+  buttons.forEach(btn => {
+    btn.disabled = isLoading;
+  });
+}
+
+function createLoader() {
+  const loader = document.createElement('div');
+  loader.id = 'loadingIndicator';
+  loader.innerHTML = `
+    <div class="loader-overlay">
+      <div class="loader"></div>
+    </div>
+  `;
+  document.body.appendChild(loader);
+  return loader;
+}
+
+// Helper function to show error messages
+function showError(message) {
+  const errorElement = document.getElementById('errorMessage') || createErrorElement();
+  errorElement.textContent = message;
+  errorElement.style.display = 'block';
+  
+  setTimeout(() => {
+    errorElement.style.display = 'none';
+  }, 5000);
+}
+
+function createErrorElement() {
+  const errorElement = document.createElement('div');
+  errorElement.id = 'errorMessage';
+  errorElement.className = 'error-message';
+  document.body.appendChild(errorElement);
+  return errorElement;
+}
+
+// Helper function to show temporary success/error messages
+function showTempMessage(message, type = 'success') {
+  const msgElement = document.createElement('div');
+  msgElement.className = `temp-message ${type}`;
+  msgElement.textContent = message;
+  
+  document.body.appendChild(msgElement);
+  
+  setTimeout(() => {
+    msgElement.classList.add('fade-out');
+    setTimeout(() => msgElement.remove(), 500);
+  }, 3000);
 }
 
 // Helper function to format date
@@ -181,21 +257,3 @@ function escapeHtml(unsafe) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
-
-// Helper to show temporary message
-function showTempMessage(message, type = 'success') {
-  const msgElement = document.createElement('div');
-  msgElement.className = `temp-message ${type}`;
-  msgElement.textContent = message;
-  
-  document.body.appendChild(msgElement);
-  
-  setTimeout(() => {
-    msgElement.classList.add('fade-out');
-    setTimeout(() => msgElement.remove(), 500);
-  }, 3000);
-}
-
-// Expose functions to global scope
-window.editNote = editNote;
-window.deleteNote = deleteNote;

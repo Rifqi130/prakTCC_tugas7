@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - Notes App</title>
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-card">
+      <h1 class="auth-title">Create Account</h1>
+      <div id="registerError" class="error-message"></div>
+      <form id="registerForm">
+        <div class="auth-form-group">
+          <label for="registerEmail">Email</label>
+          <input type="email" id="registerEmail" class="auth-form-control" required>
+        </div>
+        <div class="auth-form-group">
+          <label for="registerPassword">Password</label>
+          <input type="password" id="registerPassword" class="auth-form-control" required>
+        </div>
+        <div class="auth-form-group">
+          <label for="registerConfirm">Confirm Password</label>
+          <input type="password" id="registerConfirm" class="auth-form-control" required>
+        </div>
+        <button type="submit" class="auth-btn">Register</button>
+      </form>
+      <p class="auth-footer">
+        Already have an account? <a href="login.html" class="auth-link">Login here</a>
+      </p>
+    </div>
+  </div>
+
+  <script src="./js/auth.js"></script>
+
+  <!-- Tambahkan sebelum penutup </body> -->
+<div id="loadingIndicator" class="loading-indicator" style="display: none;">
+  <div class="loader"></div>
+</div>
+</body>
+</html>

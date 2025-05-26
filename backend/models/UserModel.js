@@ -6,14 +6,30 @@ const UserModel = (sequelize) => {
     email: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
+      unique: {
+        msg: 'Email sudah terdaftar'
+      },
       validate: {
-        isEmail: true
+        isEmail: {
+          msg: 'Format email tidak valid'
+        },
+        notEmpty: {
+          msg: 'Email tidak boleh kosong'
+        }
       }
     },
     password: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
+      validate: {
+        notEmpty: {
+          msg: 'Password tidak boleh kosong'
+        },
+        len: {
+          args: [6, 100],
+          msg: 'Password minimal 6 karakter'
+        }
+      }
     },
     refresh_token: {
       type: DataTypes.TEXT
@@ -21,14 +37,22 @@ const UserModel = (sequelize) => {
   }, {
     hooks: {
       beforeCreate: async (user) => {
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(user.password, salt);
+        try {
+          const salt = await bcrypt.genSalt(10);
+          user.password = await bcrypt.hash(user.password, salt);
+        } catch (error) {
+          throw new Error('Gagal mengenkripsi password');
+        }
       }
     }
   });
 
   User.prototype.comparePassword = async function(password) {
-    return await bcrypt.compare(password, this.password);
+    try {
+      return await bcrypt.compare(password, this.password);
+    } catch (error) {
+      throw new Error('Gagal memverifikasi password');
+    }
   };
 
   return User;
