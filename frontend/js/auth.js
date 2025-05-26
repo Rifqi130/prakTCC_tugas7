@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5001/api"; // Pastikan port ini sama dengan backend
+const API_URL = "34.72.198.253/api"; // Pastikan port ini sama dengan backend
 
 // Fungsi untuk menampilkan loading
 function showLoading(show) {
